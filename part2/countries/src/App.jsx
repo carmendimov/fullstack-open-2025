@@ -24,7 +24,7 @@ const App = () => {
             .map((country) => ({
               name: country.name?.common || '',
               flag: country.flags || '',
-              capital: country.capital || [],
+              capital: country.capital?.[0] || '',
               area: country.area,
               languages: country.languages
                 ? Object.values(country.languages)
