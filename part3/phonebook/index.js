@@ -21,28 +21,15 @@ app.use(
   morgan(':method :url :status :res[content-length] - :response-time ms :body')
 )
 
-let persons = [
-  {
-    id: '1',
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: '2',
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: '3',
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: '4',
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-]
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
 
 app.get('/api/persons', (request, response) => {
   Person.find({}).then((persons) => {
@@ -50,32 +37,41 @@ app.get('/api/persons', (request, response) => {
   })
 })
 
-app.get('/api/info', (request, response) => {
-  response.send(`
-    <p>Phonebook has info for ${persons.length} people</p>
+app.get('/api/info', (request, response, next) => {
+  Person.countDocuments({})
+    .then((size) => {
+      response.send(`
+    <p>Phonebook has info for ${size} people</p>
     <p>${new Date()}</p>
     `)
+    })
+    .catch((error) => next(error))
 })
 
-app.get('/api/persons/:id', (request, response) => {
+app.get('/api/persons/:id', (request, response, next) => {
   const id = request.params.id
-  const person = persons.find((person) => person.id === id)
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+  Person.findById(id)
+    .then((person) => {
+      if (person) {
+        response.json(person)
+      } else {
+        response.status(404).end()
+      }
+    })
+    .catch((error) => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
   const id = request.params.id
-  persons = persons.filter((p) => p.id !== id)
-  response.status(204).end()
+  Person.findByIdAndDelete(id)
+    .then((result) => {
+      response.status(204).end()
+    })
+    .catch((error) => {
+      console.log(error)
+      response.status(400).end()
+    })
 })
-
-function getRandomInt(max) {
-  return Math.floor(Math.random() * max)
-}
 
 app.post('/api/persons', (request, response) => {
   const body = request.body
@@ -107,6 +103,32 @@ app.post('/api/persons', (request, response) => {
     response.json(savedPerson)
   })
 })
+
+app.put('/api/persons/:id', (request, response, next) => {
+  const { name, number } = request.body
+
+  Person.findById(request.params.id)
+    .then((person) => {
+      if (!person) {
+        return response.status(404).end()
+      }
+
+      person.name = name
+      person.number = number
+
+      return person.save().then((person) => {
+        response.json(person)
+      })
+    })
+    .catch((error) => next(error))
+})
+
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: 'unknown endpoint' })
+}
+
+app.use(unknownEndpoint)
+app.use(errorHandler)
 
 const PORT = process.env.PORT || 3001
 app.listen(PORT, () => {
