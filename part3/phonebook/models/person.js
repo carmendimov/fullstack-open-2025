@@ -5,7 +5,7 @@ mongoose.set('strictQuery', false)
 const url = process.env.MONGODB_URI
 mongoose
   .connect(url)
-  .then((result) => {
+  .then(() => {
     console.log('connected to MongoDB')
   })
   .catch((error) => {
@@ -23,10 +23,11 @@ const personSchema = new mongoose.Schema({
     minLength: 8,
     required: true,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         return /^\d{2,3}-\d{3,}$/.test(v)
       },
-      message: 'Phone number must be formatted as XX-XXXXX or XXX-XXXXX (2-3 digits, dash, 3+ digits)',
+      message:
+        'Phone number must be formatted as XX-XXXXX or XXX-XXXXX (2-3 digits, dash, 3+ digits)',
     },
   },
 })
