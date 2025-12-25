@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Person = require('./models/person')
 
 const app = express()
 
@@ -43,7 +45,9 @@ let persons = [
 ]
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons)
+  Person.find({}).then((persons) => {
+    response.json(persons)
+  })
 })
 
 app.get('/api/info', (request, response) => {
@@ -94,21 +98,14 @@ app.post('/api/persons', (request, response) => {
     })
   }
 
-  const duplicatePerson = persons.some((person) => person.name === body.name)
-  if (duplicatePerson) {
-    return response.status(404).json({
-      error: 'name must be unique',
-    })
-  }
-
-  const newId = String(getRandomInt(1000000))
-  const newPerson = {
-    id: newId,
+  const person = new Person({
     name: body.name,
     number: body.number,
-  }
-  persons = persons.concat(newPerson)
-  response.json(persons)
+  })
+
+  person.save().then((savedPerson) => {
+    response.json(savedPerson)
+  })
 })
 
 const PORT = process.env.PORT || 3001
