@@ -73,13 +73,17 @@ const App = () => {
         name: newName,
         number: newNumber,
       }
-
-      personService.create(personObject).then((returnedObject) => {
-        showNotification(`Added ${returnedObject.name}`, 'success')
-        setPersons(persons.concat(returnedObject))
-        setNewName('')
-        setNewNumber('')
-      })
+      personService
+        .create(personObject)
+        .then((returnedObject) => {
+          showNotification(`Added ${returnedObject.name}`, 'success')
+          setPersons(persons.concat(returnedObject))
+          setNewName('')
+          setNewNumber('')
+        })
+        .catch((error) => {
+          showNotification(error.response.data.error, 'error')
+        })
     }
   }
 
@@ -108,8 +112,8 @@ const App = () => {
     if (window.confirm(`Delete ${name} ?`)) {
       personService
         .remove(id)
-        .then((deletedPerson) => {
-          setPersons(persons.filter((person) => person.id !== deletedPerson.id))
+        .then(() => {
+          setPersons(persons.filter((person) => person.id !== id))
         })
         .catch((error) => {
           showNotification(
