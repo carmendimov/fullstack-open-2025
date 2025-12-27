@@ -59,6 +59,24 @@ test('a blog post can be added', async () => {
   assert.strictEqual(saved.likes, newBlog.likes)
 })
 
+test('a blog post added without likes property defaults to 0 likes', async () => {
+  const newBlog = {
+    title: 'Operating Systems: Internals and Design Principles',
+    author: 'William Stallings',
+    url: 'http://williamstallings.com/OperatingSystems/',
+  }
+
+  await api
+    .post('/api/blogs')
+    .send(newBlog)
+    .expect(201)
+    .expect('Content-Type', /application\/json/)
+
+  const blogsAtEnd = await helper.blogsInDb()
+  const saved = blogsAtEnd.find((b) => b.title === newBlog.title)
+  assert.strictEqual(saved.likes, 0)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
