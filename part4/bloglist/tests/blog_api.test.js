@@ -77,6 +77,27 @@ test('a blog post added without likes property defaults to 0 likes', async () =>
   assert.strictEqual(saved.likes, 0)
 })
 
+test('a blog post added with missing title or url property responds with bad request', async () => {
+  const blogMissingTitle = {
+    author: 'No Title',
+    url: 'http://notitle.example.com',
+    likes: 1,
+  }
+
+  await api.post('/api/blogs').send(blogMissingTitle).expect(400)
+
+  const blogMissingUrl = {
+    title: 'No URL',
+    author: 'No Url Author',
+    likes: 1,
+  }
+
+  await api.post('/api/blogs').send(blogMissingUrl).expect(400)
+
+  const blogsAtEnd = await helper.blogsInDb()
+  assert.strictEqual(blogsAtEnd.length, helper.initialBlogs.length)
+})
+
 after(async () => {
   await mongoose.connection.close()
 })
