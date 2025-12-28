@@ -64,6 +64,20 @@ const App = () => {
     }
   }
 
+  const updateBlogLikes = async (blog) => {
+    console.log('id', blog.id)
+
+    const updatedBlog = await blogService.update({
+      ...blog,
+      likes: blog.likes + 1,
+    })
+    setBlogs(
+      blogs.map((b) =>
+        b.id !== blog.id ? b : { ...updatedBlog, user: b.user }
+      )
+    )
+  }
+
   const deleteInputs = () => {
     setTitle('')
     setAuthor('')
@@ -147,7 +161,7 @@ const App = () => {
         />
       </Togglable>
 
-      <BlogsList blogs={blogs} />
+      <BlogsList blogs={blogs} updateBlogLikes={updateBlogLikes} />
     </div>
   )
 }

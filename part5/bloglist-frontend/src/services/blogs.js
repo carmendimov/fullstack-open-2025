@@ -9,7 +9,10 @@ const setToken = (newToken) => {
 
 const getAll = () => {
   const request = axios.get(baseUrl)
-  return request.then((response) => response.data)
+  return request.then((response) => {
+    console.log(response.data)
+    return response.data
+  })
 }
 
 const create = async (newBlog) => {
@@ -21,4 +24,12 @@ const create = async (newBlog) => {
   return response.data
 }
 
-export default { getAll, create, setToken }
+const update = async (blogObject) => {
+  console.log('update', blogObject)
+
+  const url = `${baseUrl}/${blogObject.id}`
+  const response = await axios.put(url, blogObject)
+  return response.data
+}
+
+export default { getAll, create, update, setToken }
