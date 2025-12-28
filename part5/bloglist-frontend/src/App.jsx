@@ -65,8 +65,6 @@ const App = () => {
   }
 
   const updateBlogLikes = async (blog) => {
-    console.log('id', blog.id)
-
     const updatedBlog = await blogService.update({
       ...blog,
       likes: blog.likes + 1,
@@ -76,6 +74,18 @@ const App = () => {
         b.id !== blog.id ? b : { ...updatedBlog, user: b.user }
       )
     )
+  }
+
+  const deleteBlog = async (blog) => {
+    try {
+      if (window.confirm(`Remove blog '${blog.title}' by ${blog.author}`)) {
+        await blogService.remove(blog.id)
+        setBlogs(blogs.filter((b) => b.id !== blog.id))
+        showNotification(`blog '${blog.title}' deleted`, 'success')
+      }
+    } catch (error) {
+      showNotification(error.response.data.error, 'error')
+    }
   }
 
   const deleteInputs = () => {
@@ -161,7 +171,12 @@ const App = () => {
         />
       </Togglable>
 
-      <BlogsList blogs={blogs} updateBlogLikes={updateBlogLikes} />
+      <BlogsList
+        blogs={blogs}
+        updateBlogLikes={updateBlogLikes}
+        deleteBlog={deleteBlog}
+        user={user}
+      />
     </div>
   )
 }
