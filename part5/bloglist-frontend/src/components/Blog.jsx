@@ -3,9 +3,6 @@ import { useState } from 'react'
 const Blog = ({ blog, updateBlogLikes, deleteBlog, user }) => {
   const [blogVisible, setBlogVisible] = useState(false)
 
-  const hideWhenVisible = { display: blogVisible ? 'none' : '' }
-  const showWhenVisible = { display: blogVisible ? '' : 'none' }
-
   const blogStyle = {
     paddingTop: 10,
     paddingLeft: 2,
@@ -17,23 +14,22 @@ const Blog = ({ blog, updateBlogLikes, deleteBlog, user }) => {
   return (
     <div style={blogStyle}>
       {blog.title} {blog.author}{' '}
-      <button style={hideWhenVisible} onClick={() => setBlogVisible(true)}>
-        show
+      <button onClick={() => setBlogVisible(!blogVisible)}>
+        {blogVisible ? 'hide' : 'show'}
       </button>
-      <button style={showWhenVisible} onClick={() => setBlogVisible(false)}>
-        hide
-      </button>
-      <div style={showWhenVisible}>
-        <div>{blog.url}</div>
-        <div>
-          likes {blog.likes}{' '}
-          <button onClick={() => updateBlogLikes(blog)}>like</button>
+      {blogVisible && (
+        <div className="blog-details">
+          <div>{blog.url}</div>
+          <div>
+            likes {blog.likes}{' '}
+            <button onClick={() => updateBlogLikes(blog)}>like</button>
+          </div>
+          <div>{blog.user.name}</div>
+          {user.username === blog.user.username && (
+            <button onClick={() => deleteBlog(blog)}>delete</button>
+          )}
         </div>
-        <div>{blog.user.name}</div>
-        {user.username === blog.user.username && (
-          <button onClick={() => deleteBlog(blog)}>delete</button>
-        )}
-      </div>
+      )}
     </div>
   )
 }
