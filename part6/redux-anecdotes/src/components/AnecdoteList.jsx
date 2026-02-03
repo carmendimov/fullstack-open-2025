@@ -19,6 +19,7 @@ const AnecdoteList = () => {
     dispatch(
       displayNotification(
         `You voted '${anecdotes.find((a) => a.id === id).content}'`,
+        10,
       ),
     )
   }
