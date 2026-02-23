@@ -8,9 +8,11 @@ import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import { useRef } from 'react'
 import { useNotify } from './NotificationContext'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const App = () => {
-  const [blogs, setBlogs] = useState([])
+  const queryClient = useQueryClient()
+  // const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
@@ -19,9 +21,31 @@ const App = () => {
 
   const blogFormRef = useRef()
 
-  useEffect(() => {
-    blogService.getAll().then((blogs) => setBlogs(blogs))
-  }, [])
+  // useEffect(() => {
+  //   blogService.getAll().then((blogs) => setBlogs(blogs))
+  // }, [])
+
+  const newBlogMutation = useMutation({
+    mutationFn: blogService.create,
+    onSuccess: (newBlog) => {
+      const blogs = queryClient.getQueryData(['blogs'])
+      queryClient.setQueryData(['blogs'], blogs.concat(newBlog))
+    },
+  })
+
+  const updateBlogMutation = useMutation({
+    mutationFn: blogService.update,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
+
+  const deleteBlogMutation = useMutation({
+    mutationFn: blogService.remove,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
 
   useEffect(() => {
     const loggerUserJSON = window.localStorage.getItem('loggedUser')
@@ -46,7 +70,8 @@ const App = () => {
         },
       }
 
-      setBlogs(blogs.concat(blogWithUser))
+      // setBlogs(blogs.concat(blogWithUser))
+      newBlogMutation.mutate(blogWithUser)
       notify(`a new blog '${blog.title}' by ${blog.author} added`, 'success')
     } catch (error) {
       notify(error.response.data.error, 'error')
@@ -58,18 +83,20 @@ const App = () => {
       ...blog,
       likes: blog.likes + 1,
     })
-    setBlogs(
-      blogs.map((b) =>
-        b.id !== blog.id ? b : { ...updatedBlog, user: b.user },
-      ),
-    )
+    // setBlogs(
+    //   blogs.map((b) =>
+    //     b.id !== blog.id ? b : { ...updatedBlog, user: b.user },
+    //   ),
+    // )
+    updateBlogMutation.mutate(updatedBlog)
   }
 
   const deleteBlog = async (blog) => {
     try {
       if (window.confirm(`Remove blog '${blog.title}' by ${blog.author}`)) {
-        await blogService.remove(blog.id)
-        setBlogs(blogs.filter((b) => b.id !== blog.id))
+        // await blogService.remove(blog.id)
+        // setBlogs(blogs.filter((b) => b.id !== blog.id))
+        deleteBlogMutation.mutate(blog.id)
         notify(`blog '${blog.title}' deleted`, 'success')
       }
     } catch (error) {
@@ -95,6 +122,19 @@ const App = () => {
     window.localStorage.removeItem('loggedUser')
     setUser(null)
   }
+
+  const result = useQuery({
+    queryKey: ['blogs'],
+    queryFn: blogService.getAll,
+  })
+
+  // console.log(JSON.parse(JSON.stringify(result)))
+
+  if (result.isLoading) {
+    return <div>loading data...</div>
+  }
+
+  const blogs = result.data
 
   {
     !user && (
