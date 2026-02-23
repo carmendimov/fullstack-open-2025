@@ -7,6 +7,7 @@ import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import { useRef } from 'react'
+import { useNotify } from './NotificationContext'
 
 const App = () => {
   const [blogs, setBlogs] = useState([])
@@ -14,10 +15,7 @@ const App = () => {
   const [password, setPassword] = useState('')
   const [user, setUser] = useState(null)
 
-  const [notification, setNotification] = useState({
-    message: null,
-    type: null,
-  })
+  const notify = useNotify()
 
   const blogFormRef = useRef()
 
@@ -34,13 +32,6 @@ const App = () => {
     }
   }, [])
 
-  const showNotification = (message, type) => {
-    setNotification({ message, type })
-    setTimeout(() => {
-      setNotification({ message: null, type: null })
-    }, 5000)
-  }
-
   const addBlog = async (newBlog) => {
     try {
       const blog = await blogService.create(newBlog)
@@ -56,12 +47,9 @@ const App = () => {
       }
 
       setBlogs(blogs.concat(blogWithUser))
-      showNotification(
-        `a new blog '${blog.title}' by ${blog.author} added`,
-        'success'
-      )
+      notify(`a new blog '${blog.title}' by ${blog.author} added`, 'success')
     } catch (error) {
-      showNotification(error.response.data.error, 'error')
+      notify(error.response.data.error, 'error')
     }
   }
 
@@ -72,8 +60,8 @@ const App = () => {
     })
     setBlogs(
       blogs.map((b) =>
-        b.id !== blog.id ? b : { ...updatedBlog, user: b.user }
-      )
+        b.id !== blog.id ? b : { ...updatedBlog, user: b.user },
+      ),
     )
   }
 
@@ -82,10 +70,10 @@ const App = () => {
       if (window.confirm(`Remove blog '${blog.title}' by ${blog.author}`)) {
         await blogService.remove(blog.id)
         setBlogs(blogs.filter((b) => b.id !== blog.id))
-        showNotification(`blog '${blog.title}' deleted`, 'success')
+        notify(`blog '${blog.title}' deleted`, 'success')
       }
     } catch (error) {
-      showNotification(error.response.data.error, 'error')
+      notify(error.response.data.error, 'error')
     }
   }
 
@@ -99,7 +87,7 @@ const App = () => {
       setUsername('')
       setPassword('')
     } catch (error) {
-      showNotification(error.response.data.error, 'error')
+      notify(error.response.data.error, 'error')
     }
   }
 
@@ -114,7 +102,6 @@ const App = () => {
         username={username}
         password={password}
         handleLogin={handleLogin}
-        notification={notification}
         setPassword={setPassword}
         setUsername={setUsername}
       />
@@ -127,7 +114,6 @@ const App = () => {
         username={username}
         password={password}
         handleLogin={handleLogin}
-        notification={notification}
         setPassword={setPassword}
         setUsername={setUsername}
       />
@@ -136,7 +122,7 @@ const App = () => {
   return (
     <div>
       <h2>blogs</h2>
-      <Notification message={notification.message} type={notification.type} />
+      <Notification />
       <p>
         {user.name} logged in<button onClick={logout}>logout</button>
       </p>

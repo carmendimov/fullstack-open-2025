@@ -5,13 +5,12 @@ const LoginForm = ({
   password,
   setUsername,
   setPassword,
-  notification,
   handleLogin,
 }) => {
   return (
     <div>
       <h2>log in to application</h2>
-      <Notification message={notification.message} type={notification.type} />
+      <Notification />
       <form onSubmit={handleLogin}>
         <div>
           <label>
