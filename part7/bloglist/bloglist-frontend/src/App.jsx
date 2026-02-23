@@ -8,6 +8,7 @@ import LoginForm from './components/LoginForm'
 import Togglable from './components/Togglable'
 import { useRef } from 'react'
 import { useNotify } from './NotificationContext'
+import { useLoginValue, useLoginDispatch } from './LoginContext'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 
 const App = () => {
@@ -15,7 +16,8 @@ const App = () => {
   // const [blogs, setBlogs] = useState([])
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
-  const [user, setUser] = useState(null)
+  const user = useLoginValue()
+  const loginDispatch = useLoginDispatch()
 
   const notify = useNotify()
 
@@ -51,10 +53,10 @@ const App = () => {
     const loggerUserJSON = window.localStorage.getItem('loggedUser')
     if (loggerUserJSON) {
       const user = JSON.parse(loggerUserJSON)
-      setUser(user)
+      loginDispatch({ type: 'LOGIN', payload: user })
       blogService.setToken(user.token)
     }
-  }, [])
+  }, [loginDispatch])
 
   const addBlog = async (newBlog) => {
     try {
@@ -110,7 +112,7 @@ const App = () => {
       const user = await loginService.login({ username, password })
       window.localStorage.setItem('loggedUser', JSON.stringify(user))
       blogService.setToken(user.token)
-      setUser(user)
+      loginDispatch({ type: 'LOGIN', payload: user })
       setUsername('')
       setPassword('')
     } catch (error) {
@@ -120,7 +122,7 @@ const App = () => {
 
   const logout = () => {
     window.localStorage.removeItem('loggedUser')
-    setUser(null)
+    loginDispatch({ type: 'LOGOUT' })
   }
 
   const result = useQuery({
