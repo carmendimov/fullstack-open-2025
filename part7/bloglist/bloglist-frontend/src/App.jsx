@@ -55,6 +55,13 @@ const App = () => {
     },
   })
 
+  const addCommentMutation = useMutation({
+    mutationFn: ({ id, comment }) => blogService.addComment(id, comment),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['blogs'] })
+    },
+  })
+
   useEffect(() => {
     const loggerUserJSON = window.localStorage.getItem('loggedUser')
     if (loggerUserJSON) {
@@ -107,6 +114,15 @@ const App = () => {
         deleteBlogMutation.mutate(blog.id)
         notify(`blog '${blog.title}' deleted`, 'success')
       }
+    } catch (error) {
+      notify(error.response.data.error, 'error')
+    }
+  }
+
+  const addComment = async (id, comment) => {
+    try {
+      addCommentMutation.mutate({ id, comment })
+      notify('comment added', 'success')
     } catch (error) {
       notify(error.response.data.error, 'error')
     }
@@ -183,7 +199,11 @@ const App = () => {
         <Route
           path="/blogs/:id"
           element={
-            <BlogView blog={matchedBlog} updateBlogLikes={updateBlogLikes} />
+            <BlogView
+              blog={matchedBlog}
+              updateBlogLikes={updateBlogLikes}
+              addComment={addComment}
+            />
           }
         />
         <Route
