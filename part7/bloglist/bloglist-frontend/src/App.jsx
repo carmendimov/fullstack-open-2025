@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import BlogForm from './components/BlogForm'
 import BlogsList from './components/BlogsList'
 import blogService from './services/blogs'
+import userService from './services/users'
 import loginService from './services/login'
 import Notification from './components/Notification'
 import LoginForm from './components/LoginForm'
@@ -10,6 +11,11 @@ import { useRef } from 'react'
 import { useNotify } from './NotificationContext'
 import { useLoginValue, useLoginDispatch } from './LoginContext'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { Route, Routes, useMatch } from 'react-router-dom'
+import Users from './components/Users'
+import UserView from './components/UserView'
+import BlogView from './components/BlogView'
+import NavigationMenu from './components/NavigationMenu'
 
 const App = () => {
   const queryClient = useQueryClient()
@@ -130,6 +136,14 @@ const App = () => {
     queryFn: blogService.getAll,
   })
 
+  const usersResult = useQuery({
+    queryKey: ['users'],
+    queryFn: userService.getAll,
+  })
+
+  const userMatch = useMatch('/users/:id')
+  const blogMatch = useMatch('/blogs/:id')
+
   // console.log(JSON.parse(JSON.stringify(result)))
 
   if (result.isLoading) {
@@ -137,18 +151,13 @@ const App = () => {
   }
 
   const blogs = result.data
+  const users = usersResult.data
 
-  {
-    !user && (
-      <LoginForm
-        username={username}
-        password={password}
-        handleLogin={handleLogin}
-        setPassword={setPassword}
-        setUsername={setUsername}
-      />
-    )
-  }
+  const userId = userMatch ? userMatch.params.id : null
+  const matchedUser = users?.find((u) => u.id === userId)
+
+  const blogId = blogMatch ? blogMatch.params.id : null
+  const matchedBlog = blogs?.find((b) => b.id === blogId)
 
   if (user === null) {
     return (
@@ -161,25 +170,41 @@ const App = () => {
       />
     )
   }
+
   return (
     <div>
+      <NavigationMenu user={user} logout={logout} />
       <h2>blogs</h2>
       <Notification />
-      <p>
-        {user.name} logged in<button onClick={logout}>logout</button>
-      </p>
 
-      <Togglable buttonLabel="create new blog" ref={blogFormRef}>
-        <h3>create new</h3>
-        <BlogForm createBlog={addBlog} />
-      </Togglable>
+      <Routes>
+        <Route path="/users" element={<Users users={users} />} />
+        <Route path="/users/:id" element={<UserView user={matchedUser} />} />
+        <Route
+          path="/blogs/:id"
+          element={
+            <BlogView blog={matchedBlog} updateBlogLikes={updateBlogLikes} />
+          }
+        />
+        <Route
+          path="/"
+          element={
+            <div>
+              <Togglable buttonLabel="create new blog" ref={blogFormRef}>
+                <h3>create new</h3>
+                <BlogForm createBlog={addBlog} />
+              </Togglable>
 
-      <BlogsList
-        blogs={blogs}
-        updateBlogLikes={updateBlogLikes}
-        deleteBlog={deleteBlog}
-        user={user}
-      />
+              <BlogsList
+                blogs={blogs}
+                updateBlogLikes={updateBlogLikes}
+                deleteBlog={deleteBlog}
+                user={user}
+              />
+            </div>
+          }
+        />
+      </Routes>
     </div>
   )
 }

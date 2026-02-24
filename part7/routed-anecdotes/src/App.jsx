@@ -74,8 +74,8 @@ const Footer = () => (
   <div>
     Anecdote app for <a href="https://fullstackopen.com/">Full Stack Open</a>.
     See{' '}
-    <a href="https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js">
-      https://github.com/fullstack-hy2020/routed-anecdotes/blob/master/src/App.js
+    <a href="https://github.com/carmendimov/fullstack-open-2025/tree/main/part7/routed-anecdotes">
+      https://github.com/carmendimov/fullstack-open-2025/tree/main/part7/routed-anecdotes
     </a>{' '}
     for the source code.
   </div>

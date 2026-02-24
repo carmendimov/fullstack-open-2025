@@ -1,18 +1,12 @@
-import Blog from './Blog'
+import BlogLink from './BlogLink'
 
-const BlogsList = ({ blogs, updateBlogLikes, deleteBlog, user }) => {
+const BlogsList = ({ blogs }) => {
   const sortedBlogs = [...blogs].sort((a, b) => b.likes - a.likes)
 
   return (
     <div>
       {sortedBlogs.map((blog) => (
-        <Blog
-          key={blog.id}
-          blog={blog}
-          updateBlogLikes={updateBlogLikes}
-          deleteBlog={deleteBlog}
-          user={user}
-        />
+        <BlogLink key={blog.id} blog={blog} />
       ))}
     </div>
   )
